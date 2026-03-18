@@ -12,7 +12,7 @@ services:
         fromService:
           type: web
           name: draw-lots-frontend
-          property: url
+          property: host
 
   # 前端服务
   - type: web

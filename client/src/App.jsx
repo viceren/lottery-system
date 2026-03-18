@@ -2,8 +2,16 @@ import React, { useState, useEffect } from 'react';
 import io from 'socket.io-client';
 import { User, LogOut, Play, RefreshCw } from 'lucide-react';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
-const socket = io(BACKEND_URL);
+const getBackendUrl = () => {
+  const url = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
+  // 如果环境变量里只有域名（比如 draw-lots-backend.onrender.com），自动补全 https://
+  if (url.includes('onrender.com') && !url.startsWith('http')) {
+    return `https://${url}`;
+  }
+  return url;
+};
+
+const socket = io(getBackendUrl());
 
 function App() {
   const [username, setUsername] = useState('');

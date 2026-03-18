@@ -5,7 +5,16 @@ const cors = require('cors');
 
 const app = express();
 
-const ALLOWED_ORIGIN = process.env.CLIENT_URL || "http://localhost:3000";
+const getAllowedOrigins = () => {
+  const origin = process.env.CLIENT_URL || "http://localhost:3000";
+  // 如果环境变量里只有域名，允许域名本身以及带 https 的域名
+  if (origin.includes('onrender.com') && !origin.startsWith('http')) {
+    return [origin, `https://${origin}`];
+  }
+  return origin;
+};
+
+const ALLOWED_ORIGIN = getAllowedOrigins();
 
 app.use(cors({
   origin: ALLOWED_ORIGIN
