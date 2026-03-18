@@ -3,17 +3,30 @@ import io from 'socket.io-client';
 import { User, LogOut, Play, RefreshCw } from 'lucide-react';
 
 const getBackendUrl = () => {
-  const url = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3001';
-  // 如果环境变量里只有域名（比如 draw-lots-backend.onrender.com），自动补全 https://
+  // 1. 优先使用环境变量
+  let url = import.meta.env.VITE_BACKEND_URL;
+  
+  // 2. 如果没有环境变量，且在 Render 环境下，尝试自动推断
+  if (!url && window.location.hostname.includes('onrender.com')) {
+    // 假设前端是 draw-lots-frontend.onrender.com，后端通常是 draw-lots-backend.onrender.com
+    url = window.location.hostname.replace('frontend', 'backend');
+  }
+
+  // 3. 兜底到本地
+  if (!url) url = 'http://localhost:3001';
+
+  // 4. 补全协议头
   if (url.includes('onrender.com') && !url.startsWith('http')) {
     return `https://${url}`;
   }
   return url;
 };
 
-const socket = io(getBackendUrl(), {
-  transports: ['websocket', 'polling'], // 强制启用协议
-  autoConnect: true
+const BACKEND_ADDR = getBackendUrl();
+const socket = io(BACKEND_ADDR, {
+  transports: ['websocket', 'polling'],
+  autoConnect: true,
+  reconnectionAttempts: 10
 });
 
 function App() {
@@ -122,6 +135,9 @@ function App() {
             marginLeft: '10px'
           }}>
             {isConnected ? '● 已连接' : '○ 连接中...'}
+          </span>
+          <span style={{ fontSize: '0.6rem', color: '#999', marginLeft: '5px' }}>
+            ({BACKEND_ADDR})
           </span>
         </div>
         <button onClick={handleLogout} className="btn" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#666' }}>
