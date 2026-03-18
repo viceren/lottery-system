@@ -74,14 +74,9 @@ io.on('connection', (socket) => {
 
   socket.on('startGame', (username) => {
     if (username === 'admin') {
-      const allPicked = gameState.lots.length === 0 || gameState.lots.every(l => l.pickedBy !== null);
-      if (!gameState.isStarted || allPicked) {
-        initGame();
-        io.emit('gameStateUpdate', gameState);
-        console.log('Game started by admin');
-      } else {
-        socket.emit('error', '本轮抽签尚未结束！');
-      }
+      initGame();
+      io.emit('gameStateUpdate', gameState);
+      console.log('Game started by admin');
     }
   });
 

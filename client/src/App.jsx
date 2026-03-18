@@ -117,7 +117,8 @@ function App() {
   }
 
   const allPicked = gameState.lots.length > 0 && gameState.lots.every(l => l.pickedBy !== null);
-  const canStart = username === 'admin' && (!gameState.isStarted || allPicked);
+  // 管理员拥有绝对控制权，无论是否抽完都可以点
+  const canStart = username === 'admin' && isConnected;
 
   return (
     <div className="card">
@@ -136,9 +137,11 @@ function App() {
           }}>
             {isConnected ? '● 已连接' : '○ 连接中...'}
           </span>
-          <span style={{ fontSize: '0.6rem', color: '#999', marginLeft: '5px' }}>
-            ({BACKEND_ADDR})
-          </span>
+          {!isConnected && (
+            <span style={{ fontSize: '0.6rem', color: '#999', marginLeft: '5px' }}>
+              正在连接: {BACKEND_ADDR}
+            </span>
+          )}
         </div>
         <button onClick={handleLogout} className="btn" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#666' }}>
           <LogOut size={18} /> 退出
@@ -151,12 +154,13 @@ function App() {
             <button 
               onClick={handleStartGame} 
               className="btn btn-primary" 
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 auto' }}
-              disabled={!canStart}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 auto', background: isConnected ? '#3b82f6' : '#ccc' }}
+              disabled={!isConnected}
             >
-              {gameState.isStarted && !allPicked ? <RefreshCw size={18} /> : <Play size={18} />}
-              {gameState.isStarted && !allPicked ? '重新开始 (需等待全员抽完)' : '开始新一局抽签'}
+              {gameState.isStarted ? <RefreshCw size={18} /> : <Play size={18} />}
+              {gameState.isStarted ? '重新开始新一局' : '开始第一局抽签'}
             </button>
+            {!isConnected && <p style={{ fontSize: '0.8rem', color: '#991b1b', marginTop: '5px' }}>等待服务器连接成功后即可点击</p>}
           </div>
         )}
 
