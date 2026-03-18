@@ -53,6 +53,21 @@ body {
   border-color: #3b82f6;
 }
 
+.lot.picked.type-正 {
+  background: #fef08a; /* 黄色背景 */
+  border-color: #eab308;
+}
+
+.lot.picked.type-反 {
+  background: #e9d5ff; /* 紫色背景 */
+  border-color: #a855f7;
+}
+
+.lot.picked.type-主 {
+  background: #fee2e2; /* 红色背景(主字签) */
+  border-color: #ef4444;
+}
+
 .lot:not(.picked):hover {
   background: #d1d5db;
   transform: translateY(-1px);

@@ -187,7 +187,7 @@ function App() {
               {gameState.lots.map((lot) => (
                 <div
                   key={lot.id}
-                  className={`lot ${lot.pickedBy ? 'picked' : ''}`}
+                  className={`lot ${lot.pickedBy ? 'picked' : ''} ${lot.pickedBy ? `type-${lot.content}` : ''}`}
                   onClick={() => handlePickLot(lot.id)}
                 >
                   {lot.pickedBy ? (
