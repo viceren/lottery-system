@@ -11,9 +11,13 @@ const getBackendUrl = () => {
   return url;
 };
 
-const socket = io(getBackendUrl());
+const socket = io(getBackendUrl(), {
+  transports: ['websocket', 'polling'], // 强制启用协议
+  autoConnect: true
+});
 
 function App() {
+  const [isConnected, setIsConnected] = useState(false); // 新增连接状态
   const [username, setUsername] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [gameState, setGameState] = useState({
@@ -24,6 +28,16 @@ function App() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    socket.on('connect', () => {
+      setIsConnected(true);
+      console.log('Socket connected!');
+    });
+
+    socket.on('disconnect', () => {
+      setIsConnected(false);
+      console.log('Socket disconnected!');
+    });
+
     // Check for username in URL
     const params = new URLSearchParams(window.location.search);
     const userParam = params.get('user');
@@ -99,6 +113,16 @@ function App() {
           <User size={20} />
           <span style={{ fontWeight: 'bold' }}>{username}</span>
           {username === 'admin' && <span style={{ fontSize: '0.8rem', background: '#fee2e2', color: '#991b1b', padding: '2px 6px', borderRadius: '4px' }}>管理员</span>}
+          <span style={{ 
+            fontSize: '0.7rem', 
+            background: isConnected ? '#dcfce7' : '#fee2e2', 
+            color: isConnected ? '#166534' : '#991b1b', 
+            padding: '2px 6px', 
+            borderRadius: '4px',
+            marginLeft: '10px'
+          }}>
+            {isConnected ? '● 已连接' : '○ 连接中...'}
+          </span>
         </div>
         <button onClick={handleLogout} className="btn" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#666' }}>
           <LogOut size={18} /> 退出

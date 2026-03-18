@@ -23,9 +23,10 @@ app.use(cors({
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ALLOWED_ORIGIN,
+    origin: "*", // 暂时放开，确保连接成功
     methods: ["GET", "POST"]
-  }
+  },
+  transports: ['websocket', 'polling'] // 强制支持两种模式
 });
 
 const TOTAL_LOTS = 19;
