@@ -80,7 +80,17 @@ function App() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (username.trim()) {
+    const trimmedUsername = username.trim();
+    
+    // 正则表达式检查是否全为汉字
+    const isChinese = /^[\u4e00-\u9fa5]+$/.test(trimmedUsername);
+    
+    if (!isChinese && trimmedUsername !== 'admin') {
+      alert('请输入您的名字！（仅支持汉字）');
+      return;
+    }
+
+    if (trimmedUsername) {
       setIsLoggedIn(true);
     }
   };
