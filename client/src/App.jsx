@@ -9,13 +9,13 @@ const getBackendUrl = () => {
   // 2. 如果没有环境变量，且在 Render 环境下，尝试自动推断
   if (!url && window.location.hostname.includes('onrender.com')) {
     // 假设前端是 draw-lots-frontend.onrender.com，后端通常是 draw-lots-backend.onrender.com
-    url = window.location.hostname.replace('frontend', 'backend');
+    url = window.location.hostname.replace('draw-lots-frontend', 'draw-lots-backend');
   }
 
   // 3. 兜底到本地
   if (!url) url = 'http://localhost:3001';
 
-  // 4. 补全协议头
+  // 4. 补齐协议头
   if (url.includes('onrender.com') && !url.startsWith('http')) {
     return `https://${url}`;
   }
