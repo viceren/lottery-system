@@ -1,0 +1,29 @@
+services:
+  # 后端服务
+  - type: web
+    name: draw-lots-backend
+    env: node
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: CLIENT_URL
+        fromStaticSite:
+          name: draw-lots-frontend
+          property: url
+
+  # 前端服务
+  - type: static
+    name: draw-lots-frontend
+    env: static
+    plan: free
+    rootDir: client
+    buildCommand: npm install && npm run build
+    publishDir: dist
+    envVars:
+      - key: VITE_BACKEND_URL
+        fromService:
+          type: web
+          name: draw-lots-backend
+          property: host
