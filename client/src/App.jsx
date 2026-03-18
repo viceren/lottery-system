@@ -9,7 +9,8 @@ const getBackendUrl = () => {
   // 2. 如果没有环境变量，且在 Render 环境下，尝试自动推断
   if (!url && window.location.hostname.includes('onrender.com')) {
     // 假设前端是 draw-lots-frontend.onrender.com，后端通常是 draw-lots-backend.onrender.com
-    url = window.location.hostname.replace('draw-lots-frontend', 'draw-lots-backend');
+    // 注意：Render 可能会在名字后面加后缀，所以我们用更通用的替换
+    url = window.location.hostname.replace('-frontend', '-backend');
   }
 
   // 3. 兜底到本地
@@ -24,9 +25,12 @@ const getBackendUrl = () => {
 
 const BACKEND_ADDR = getBackendUrl();
 const socket = io(BACKEND_ADDR, {
-  transports: ['websocket', 'polling'],
+  transports: ['polling', 'websocket'], // 优先使用 polling 以提高云端连接成功率
   autoConnect: true,
-  reconnectionAttempts: 10
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000,
+  timeout: 20000
 });
 
 function App() {

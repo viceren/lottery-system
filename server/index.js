@@ -23,10 +23,14 @@ app.use(cors({
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // 暂时放开，确保连接成功
-    methods: ["GET", "POST"]
+    origin: "*",
+    methods: ["GET", "POST"],
+    credentials: true
   },
-  transports: ['websocket', 'polling'] // 强制支持两种模式
+  allowEIO3: true,
+  transports: ['polling', 'websocket'],
+  pingTimeout: 60000,
+  pingInterval: 25000
 });
 
 const TOTAL_LOTS = 19;
