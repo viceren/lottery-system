@@ -10,14 +10,13 @@ services:
     envVars:
       - key: CLIENT_URL
         fromService:
-          type: web
+          type: static
           name: draw-lots-frontend
           property: url
 
   # 前端服务
-  - type: web
+  - type: static
     name: draw-lots-frontend
-    env: static
     rootDir: client
     buildCommand: npm install && npm run build
     publishDir: dist
