@@ -9,15 +9,15 @@ services:
     startCommand: node index.js
     envVars:
       - key: CLIENT_URL
-        fromStaticSite:
+        fromService:
+          type: web
           name: draw-lots-frontend
           property: url
 
   # 前端服务
-  - type: static
+  - type: web
     name: draw-lots-frontend
     env: static
-    plan: free
     rootDir: client
     buildCommand: npm install && npm run build
     publishDir: dist
