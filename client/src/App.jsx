@@ -185,9 +185,9 @@ function App() {
         ) : (
           <>
             <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0 }}>抽签区域 (共19签)</h3>
+              <h3 style={{ margin: 0 }}>抽签区域 (共20签)</h3>
               <div style={{ fontSize: '0.9rem', color: '#666' }}>
-                已抽: {gameState.lots.filter(l => l.pickedBy).length} / 19
+                已抽: {gameState.lots.filter(l => l.pickedBy).length} / 20
               </div>
             </div>
 

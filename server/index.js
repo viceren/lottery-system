@@ -33,12 +33,12 @@ const io = new Server(server, {
   pingInterval: 25000
 });
 
-const TOTAL_LOTS = 19;
+const TOTAL_LOTS = 20;
 const LOT_TYPES = [
   ...Array(3).fill('正'),
   ...Array(3).fill('反'),
   ...Array(1).fill('主'),
-  ...Array(12).fill('空')
+  ...Array(13).fill('空')
 ];
 
 let gameState = {
