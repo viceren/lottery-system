@@ -10,9 +10,9 @@ services:
     envVars:
       - key: CLIENT_URL
         fromService:
-          type: web
+          type: static
           name: draw-lots-frontend
-          property: host
+          property: url
 
   # 前端服务
   - type: static

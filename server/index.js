@@ -17,7 +17,7 @@ const getAllowedOrigins = () => {
 const ALLOWED_ORIGIN = getAllowedOrigins();
 
 app.use(cors({
-  origin: ALLOWED_ORIGIN
+  origin: "*"
 }));
 
 const server = http.createServer(app);
