@@ -33,16 +33,12 @@ const io = new Server(server, {
   pingInterval: 25000
 });
 
-const TOTAL_LOTS = 20;
-const LOT_TYPES = [
-  ...Array(3).fill('正'),
-  ...Array(3).fill('反'),
-  ...Array(1).fill('主'),
-  ...Array(13).fill('空')
-];
+const DEFAULT_TOTAL_LOTS = 20;
+const MIN_TOTAL_LOTS = 7;
 
 let gameState = {
   isStarted: false,
+  totalLots: DEFAULT_TOTAL_LOTS,
   lots: [], // { id, content, pickedBy, isRevealed }
   pickHistory: [] // To keep track of who picked what in order
 };
@@ -58,8 +54,25 @@ function shuffle(array) {
   return array;
 }
 
-function initGame() {
-  const shuffledContents = shuffle([...LOT_TYPES]);
+function createLotTypes(totalLots) {
+  const emptyLots = Math.max(0, totalLots - 7);
+  return [
+    ...Array(3).fill('正'),
+    ...Array(3).fill('反'),
+    ...Array(1).fill('主'),
+    ...Array(emptyLots).fill('空')
+  ];
+}
+
+function normalizeTotalLots(input) {
+  const parsed = Number.parseInt(input, 10);
+  if (Number.isNaN(parsed)) return DEFAULT_TOTAL_LOTS;
+  return Math.max(MIN_TOTAL_LOTS, parsed);
+}
+
+function initGame(totalLots = DEFAULT_TOTAL_LOTS) {
+  const normalizedLots = normalizeTotalLots(totalLots);
+  const shuffledContents = shuffle(createLotTypes(normalizedLots));
   gameState.lots = shuffledContents.map((content, index) => ({
     id: index,
     content: content,
@@ -67,6 +80,7 @@ function initGame() {
     isRevealed: false
   }));
   gameState.isStarted = true;
+  gameState.totalLots = normalizedLots;
   gameState.pickHistory = [];
 }
 
@@ -76,11 +90,14 @@ io.on('connection', (socket) => {
   // Send current state to new connection
   socket.emit('gameStateUpdate', gameState);
 
-  socket.on('startGame', (username) => {
+  socket.on('startGame', (payload) => {
+    const username = typeof payload === 'string' ? payload : payload?.username;
+    const totalLots = typeof payload === 'string' ? DEFAULT_TOTAL_LOTS : payload?.totalLots;
+
     if (username === 'admin') {
-      initGame();
+      initGame(totalLots);
       io.emit('gameStateUpdate', gameState);
-      console.log('Game started by admin');
+      console.log(`Game started by admin, total lots: ${gameState.totalLots}`);
     }
   });
 

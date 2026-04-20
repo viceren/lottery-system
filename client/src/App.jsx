@@ -36,9 +36,11 @@ const socket = io(BACKEND_ADDR, {
 function App() {
   const [isConnected, setIsConnected] = useState(false); // 新增连接状态
   const [username, setUsername] = useState('');
+  const [lotCountInput, setLotCountInput] = useState(20);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [gameState, setGameState] = useState({
     isStarted: false,
+    totalLots: 20,
     lots: [],
     pickHistory: []
   });
@@ -96,7 +98,13 @@ function App() {
   };
 
   const handleStartGame = () => {
-    socket.emit('startGame', username);
+    const totalLots = Number.parseInt(lotCountInput, 10);
+    if (Number.isNaN(totalLots) || totalLots < 7) {
+      setError('人数最少为7人（含正3、反3、主1）');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+    socket.emit('startGame', { username, totalLots });
   };
 
   const handlePickLot = (id) => {
@@ -165,6 +173,17 @@ function App() {
       <main>
         {username === 'admin' && (
           <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+            <div style={{ marginBottom: '0.75rem' }}>
+              <input
+                type="number"
+                min={7}
+                step={1}
+                value={lotCountInput}
+                onChange={(e) => setLotCountInput(e.target.value)}
+                style={{ width: '140px', padding: '0.4rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
+                placeholder="输入人数"
+              />
+            </div>
             <button 
               onClick={handleStartGame} 
               className="btn btn-primary" 
@@ -185,9 +204,9 @@ function App() {
         ) : (
           <>
             <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0 }}>抽签区域 (共20签)</h3>
+              <h3 style={{ margin: 0 }}>抽签区域 (共{gameState.totalLots || gameState.lots.length}签)</h3>
               <div style={{ fontSize: '0.9rem', color: '#666' }}>
-                已抽: {gameState.lots.filter(l => l.pickedBy).length} / 20
+                已抽: {gameState.lots.filter(l => l.pickedBy).length} / {gameState.totalLots || gameState.lots.length}
               </div>
             </div>
 
