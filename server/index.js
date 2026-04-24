@@ -35,7 +35,7 @@ const io = new Server(server, {
 
 const DEFAULT_TOTAL_LOTS = 20;
 const MIN_TOTAL_LOTS = 7;
-const DEFAULT_EXCLUDE_ZHU_USERS = ['张三', '李四', '王五'];
+const DEFAULT_EXCLUDE_ZHU_USERS = ["汪桥", "邓银根"];
 
 let gameState = {
   isStarted: false,
@@ -72,7 +72,7 @@ function normalizeTotalLots(input) {
   return Math.max(MIN_TOTAL_LOTS, parsed);
 }
 
-function initGame(totalLots = DEFAULT_TOTAL_LOTS) {
+function initGame(totalLots = DEFAULT_TOTAL_LOTS, excludeZhuUsers = DEFAULT_EXCLUDE_ZHU_USERS) {
   const normalizedLots = normalizeTotalLots(totalLots);
   const shuffledContents = shuffle(createLotTypes(normalizedLots));
   
@@ -84,6 +84,7 @@ function initGame(totalLots = DEFAULT_TOTAL_LOTS) {
   }));
   gameState.isStarted = true;
   gameState.totalLots = normalizedLots;
+  gameState.excludeZhuUsers = Array.isArray(excludeZhuUsers) ? excludeZhuUsers : [];
   gameState.pickHistory = [];
 }
 
@@ -98,7 +99,7 @@ io.on('connection', (socket) => {
     const totalLots = typeof payload === 'string' ? DEFAULT_TOTAL_LOTS : payload?.totalLots;
 
     if (username === 'admin') {
-      initGame(totalLots);
+      initGame(totalLots, DEFAULT_EXCLUDE_ZHU_USERS);
       io.emit('gameStateUpdate', gameState);
       console.log(`Game started by admin, total lots: ${gameState.totalLots}, exclude zhu users: ${gameState.excludeZhuUsers.length}`);
     }

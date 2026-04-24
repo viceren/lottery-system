@@ -104,7 +104,6 @@ function App() {
       setTimeout(() => setError(''), 3000);
       return;
     }
-    
     socket.emit('startGame', { username, totalLots });
   };
 
