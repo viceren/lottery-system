@@ -35,10 +35,12 @@ const io = new Server(server, {
 
 const DEFAULT_TOTAL_LOTS = 20;
 const MIN_TOTAL_LOTS = 7;
+const DEFAULT_EXCLUDE_ZHU_USERS = [];
 
 let gameState = {
   isStarted: false,
   totalLots: DEFAULT_TOTAL_LOTS,
+  excludeZhuUsers: DEFAULT_EXCLUDE_ZHU_USERS,
   lots: [], // { id, content, pickedBy, isRevealed }
   pickHistory: [] // To keep track of who picked what in order
 };
@@ -70,9 +72,10 @@ function normalizeTotalLots(input) {
   return Math.max(MIN_TOTAL_LOTS, parsed);
 }
 
-function initGame(totalLots = DEFAULT_TOTAL_LOTS) {
+function initGame(totalLots = DEFAULT_TOTAL_LOTS, excludeZhuUsers = DEFAULT_EXCLUDE_ZHU_USERS) {
   const normalizedLots = normalizeTotalLots(totalLots);
   const shuffledContents = shuffle(createLotTypes(normalizedLots));
+  
   gameState.lots = shuffledContents.map((content, index) => ({
     id: index,
     content: content,
@@ -81,6 +84,7 @@ function initGame(totalLots = DEFAULT_TOTAL_LOTS) {
   }));
   gameState.isStarted = true;
   gameState.totalLots = normalizedLots;
+  gameState.excludeZhuUsers = Array.isArray(excludeZhuUsers) ? excludeZhuUsers : [];
   gameState.pickHistory = [];
 }
 
@@ -93,11 +97,12 @@ io.on('connection', (socket) => {
   socket.on('startGame', (payload) => {
     const username = typeof payload === 'string' ? payload : payload?.username;
     const totalLots = typeof payload === 'string' ? DEFAULT_TOTAL_LOTS : payload?.totalLots;
+    const excludeZhuUsers = typeof payload === 'string' ? DEFAULT_EXCLUDE_ZHU_USERS : payload?.excludeZhuUsers || DEFAULT_EXCLUDE_ZHU_USERS;
 
     if (username === 'admin') {
-      initGame(totalLots);
+      initGame(totalLots, excludeZhuUsers);
       io.emit('gameStateUpdate', gameState);
-      console.log(`Game started by admin, total lots: ${gameState.totalLots}`);
+      console.log(`Game started by admin, total lots: ${gameState.totalLots}, exclude zhu users: ${gameState.excludeZhuUsers.length}`);
     }
   });
 
@@ -115,6 +120,12 @@ io.on('connection', (socket) => {
 
       lot.pickedBy = username;
       lot.isRevealed = true;
+      
+      // 如果用户在排除清单中且抽中了"主"签，则自动替换为"空"签
+      if (gameState.excludeZhuUsers.includes(username) && lot.content === '主') {
+        lot.content = '空';
+      }
+      
       gameState.pickHistory.push({ username, content: lot.content });
 
       io.emit('gameStateUpdate', gameState);
