@@ -37,7 +37,6 @@ function App() {
   const [isConnected, setIsConnected] = useState(false); // 新增连接状态
   const [username, setUsername] = useState('');
   const [lotCountInput, setLotCountInput] = useState(20);
-  const [excludeZhuInput, setExcludeZhuInput] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [gameState, setGameState] = useState({
     isStarted: false,
@@ -106,12 +105,7 @@ function App() {
       return;
     }
     
-    const excludeZhuUsers = excludeZhuInput
-      .split(/[\n,，\s]+/)
-      .map(name => name.trim())
-      .filter(name => name.length > 0);
-    
-    socket.emit('startGame', { username, totalLots, excludeZhuUsers });
+    socket.emit('startGame', { username, totalLots });
   };
 
   const handlePickLot = (id) => {
@@ -189,14 +183,6 @@ function App() {
                 onChange={(e) => setLotCountInput(e.target.value)}
                 style={{ width: '140px', padding: '0.4rem', border: '1px solid #d1d5db', borderRadius: '4px' }}
                 placeholder="输入人数"
-              />
-            </div>
-            <div style={{ marginBottom: '0.75rem' }}>
-              <textarea
-                value={excludeZhuInput}
-                onChange={(e) => setExcludeZhuInput(e.target.value)}
-                style={{ width: '100%', maxWidth: '300px', height: '80px', padding: '0.4rem', border: '1px solid #d1d5db', borderRadius: '4px', resize: 'vertical' }}
-                placeholder="输入不能抽中主签的用户名（每行一个，或用逗号分隔）"
               />
             </div>
             <button 
