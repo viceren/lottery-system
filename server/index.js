@@ -120,8 +120,15 @@ io.on('connection', (socket) => {
       lot.pickedBy = username;
       lot.isRevealed = true;
       
-      // 如果用户在排除清单中且抽中了"主"签，则自动替换为"空"签
+      // 如果排除清单用户抽中"主"签：把"主"随机转移给一个剩余未开封的空签，
+      // 当前签变"空"。这样既保证排除用户不当"主"，又不损耗全场非空签总数，
+      // 消除后抽者被动的概率惩罚。
       if (gameState.excludeZhuUsers.includes(username) && lot.content === '主') {
+        const remainingEmptyLots = gameState.lots.filter(l => !l.pickedBy && l.id !== lot.id && l.content === '空');
+        if (remainingEmptyLots.length > 0) {
+          const targetIndex = Math.floor(Math.random() * remainingEmptyLots.length);
+          remainingEmptyLots[targetIndex].content = '主';
+        }
         lot.content = '空';
       }
       
