@@ -35,12 +35,16 @@ const io = new Server(server, {
 
 const DEFAULT_TOTAL_LOTS = 20;
 const MIN_TOTAL_LOTS = 7;
-const DEFAULT_EXCLUDE_ZHU_USERS = ["汪桥","黄俊宏","李兵"];
+// 抽到"主"则排除（转移给剩余空签，自身变"空"）
+const DEFAULT_EXCLUDE_ZHU_USERS = ["汪桥","黄俊宏"];
+// 抽到任何非空签(正/反/主)都排除（转移给剩余空签，自身变"空"）
+const DEFAULT_EXCLUDE_NON_EMPTY_USERS = ["李兵"];
 
 let gameState = {
   isStarted: false,
   totalLots: DEFAULT_TOTAL_LOTS,
   excludeZhuUsers: DEFAULT_EXCLUDE_ZHU_USERS,
+  excludeNonEmptyUsers: DEFAULT_EXCLUDE_NON_EMPTY_USERS,
   lots: [], // { id, content, pickedBy, isRevealed }
   pickHistory: [] // To keep track of who picked what in order
 };
@@ -72,7 +76,7 @@ function normalizeTotalLots(input) {
   return Math.max(MIN_TOTAL_LOTS, parsed);
 }
 
-function initGame(totalLots = DEFAULT_TOTAL_LOTS, excludeZhuUsers = DEFAULT_EXCLUDE_ZHU_USERS) {
+function initGame(totalLots = DEFAULT_TOTAL_LOTS, excludeZhuUsers = DEFAULT_EXCLUDE_ZHU_USERS, excludeNonEmptyUsers = DEFAULT_EXCLUDE_NON_EMPTY_USERS) {
   const normalizedLots = normalizeTotalLots(totalLots);
   const shuffledContents = shuffle(createLotTypes(normalizedLots));
   
@@ -85,6 +89,7 @@ function initGame(totalLots = DEFAULT_TOTAL_LOTS, excludeZhuUsers = DEFAULT_EXCL
   gameState.isStarted = true;
   gameState.totalLots = normalizedLots;
   gameState.excludeZhuUsers = Array.isArray(excludeZhuUsers) ? excludeZhuUsers : [];
+  gameState.excludeNonEmptyUsers = Array.isArray(excludeNonEmptyUsers) ? excludeNonEmptyUsers : [];
   gameState.pickHistory = [];
 }
 
@@ -99,9 +104,9 @@ io.on('connection', (socket) => {
     const totalLots = typeof payload === 'string' ? DEFAULT_TOTAL_LOTS : payload?.totalLots;
 
     if (username === 'admin') {
-      initGame(totalLots, DEFAULT_EXCLUDE_ZHU_USERS);
+      initGame(totalLots, DEFAULT_EXCLUDE_ZHU_USERS, DEFAULT_EXCLUDE_NON_EMPTY_USERS);
       io.emit('gameStateUpdate', gameState);
-      console.log(`Game started by admin, total lots: ${gameState.totalLots}, exclude zhu users: ${gameState.excludeZhuUsers.length}`);
+      console.log(`Game started by admin, total lots: ${gameState.totalLots}, exclude zhu users: ${gameState.excludeZhuUsers.length}, exclude non-empty users: ${gameState.excludeNonEmptyUsers.length}`);
     }
   });
 
@@ -120,14 +125,18 @@ io.on('connection', (socket) => {
       lot.pickedBy = username;
       lot.isRevealed = true;
       
-      // 如果排除清单用户抽中"主"签：把"主"随机转移给一个剩余未开封的空签，
-      // 当前签变"空"。这样既保证排除用户不当"主"，又不损耗全场非空签总数，
-      // 消除后抽者被动的概率惩罚。
-      if (gameState.excludeZhuUsers.includes(username) && lot.content === '主') {
+      // 排除规则：
+      //  - excludeZhuUsers:      抽到"主"则排除
+      //  - excludeNonEmptyUsers: 抽到任何非空签(正/反/主)则排除
+      // 命中时把该签内容随机转移给一个剩余未开封的空签，当前签变"空"，
+      // 既满足排除要求又不损耗全场非空签总数，消除后抽者的概率惩罚。
+      const isZhuExcluded = gameState.excludeZhuUsers.includes(username) && lot.content === '主';
+      const isNonEmptyExcluded = (gameState.excludeNonEmptyUsers || []).includes(username) && lot.content !== '空';
+      if (isZhuExcluded || isNonEmptyExcluded) {
         const remainingEmptyLots = gameState.lots.filter(l => !l.pickedBy && l.id !== lot.id && l.content === '空');
         if (remainingEmptyLots.length > 0) {
           const targetIndex = Math.floor(Math.random() * remainingEmptyLots.length);
-          remainingEmptyLots[targetIndex].content = '主';
+          remainingEmptyLots[targetIndex].content = lot.content; // 转移原内容(主/正/反)
         }
         lot.content = '空';
       }
