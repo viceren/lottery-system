@@ -35,7 +35,7 @@ const io = new Server(server, {
 
 const DEFAULT_TOTAL_LOTS = 20;
 const MIN_TOTAL_LOTS = 7;
-const DEFAULT_EXCLUDE_ZHU_USERS = ["汪桥", "邓银根","黄俊宏"];
+const DEFAULT_EXCLUDE_ZHU_USERS = ["汪桥","黄俊宏","李兵"];
 
 let gameState = {
   isStarted: false,
